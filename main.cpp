@@ -1,7 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
-
 #include <Windows.h>
 #include <iostream>
+
+#include "common.h"
 
 int main(int argc, char **argv)
 {
@@ -35,7 +36,14 @@ int main(int argc, char **argv)
 		return -4;
 	}
 
-	std::cout << char(map[0]) << char(map[1]) << "\n";
+	LARGE_INTEGER mapSize{};
+	if (GetFileSizeEx(file, &mapSize) == false)
+	{
+		std::cout << "GetFileSizeEx failed with error: " << GetLastError() << '\n';
+		return -5;
+	}
+
+	PrintBytes(map, mapSize.QuadPart);
 
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);
