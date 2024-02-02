@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "common.h"
+#include "PEImage.h"
 
 int main(int argc, char **argv)
 {
