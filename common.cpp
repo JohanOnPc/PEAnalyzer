@@ -22,4 +22,5 @@ void PrintBytes(std::byte* map, __int64 size, int width)
 	{
 		std::cout << "Got a page acces violation error for address: " << (std::byte*)(map + i) << '\n';
 	}
+	std::cout << '\n';
 }

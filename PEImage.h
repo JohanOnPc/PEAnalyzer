@@ -4,27 +4,28 @@
 #include <Windows.h>
 
 #include <cstdint>
+#include <cstddef>
 
 struct DOSHeader {
-	uint32_t e_magic;
-	uint32_t e_cblp;
-	uint32_t e_cp;
-	uint32_t e_crlc;
-	uint32_t e_cparhdr;
-	uint32_t e_minalloc;
-	uint32_t e_maxalloc;
-	uint32_t e_ss;
-	uint32_t e_sp;
-	uint32_t e_csum;
-	uint32_t e_ip;
-	uint32_t e_cs;
-	uint32_t e_lfarlc;
-	uint32_t e_ovno;
-	uint32_t e_res[4];
-	uint32_t e_oemid;
-	uint32_t e_oeminfo;
-	uint32_t e_res2[10];
-	uint64_t e_lfanew;
+	uint16_t e_magic;
+	uint16_t e_cblp;
+	uint16_t e_cp;
+	uint16_t e_crlc;
+	uint16_t e_cparhdr;
+	uint16_t e_minalloc;
+	uint16_t e_maxalloc;
+	uint16_t e_ss;
+	uint16_t e_sp;
+	uint16_t e_csum;
+	uint16_t e_ip;
+	uint16_t e_cs;
+	uint16_t e_lfarlc;
+	uint16_t e_ovno;
+	uint16_t e_res[4];
+	uint16_t e_oemid;
+	uint16_t e_oeminfo;
+	uint16_t e_res2[10];
+	uint32_t e_lfanew;
 };
 
 struct COFFHeader {
@@ -106,15 +107,27 @@ struct ImageDataDirectory {
 };
 
 struct PE32PlusOptionalHeader {
-	PE32PLUSHeaderStandardFields std;
-	PE32PLUSHeaderWindowsSpecifix win;
-	ImageDataDirectory dir[];
+	PE32PLUSHeaderStandardFields Std;
+	PE32PLUSHeaderWindowsSpecifix in;
+	ImageDataDirectory DataDirectory[];
 };
 
 struct PE32OptionalHeader {
-	PE32HeaderStandardFields std;
-	PE32HeaderWindowsSpecifix win;
-	ImageDataDirectory dir[];
+	PE32HeaderStandardFields Std;
+	PE32HeaderWindowsSpecifix Win;
+	ImageDataDirectory DataDirectory[];
+};
+
+struct NTImageHeader64 {
+	uint32_t Signature;
+	COFFHeader COFF;
+	PE32PlusOptionalHeader optionalHeader;
+};
+
+struct NTImageHeader {
+	uint32_t Signature;
+	COFFHeader COFF;
+	PE32OptionalHeader OptionalHeader;
 };
 
 constexpr size_t DOSHeaderSize =						sizeof(DOSHeader);
@@ -124,6 +137,8 @@ constexpr size_t PE32HeaderStandardFieldsSize =			sizeof(PE32HeaderStandardField
 constexpr size_t PE32PLUSHeaderWindowsSpecifixSize =	sizeof(PE32PLUSHeaderWindowsSpecifix);
 constexpr size_t PE32HeaderWindowsSpecifixSize =		sizeof(PE32HeaderWindowsSpecifix);
 constexpr size_t ImageDataDirectorySize =				sizeof(ImageDataDirectory);
+constexpr size_t NTImageHeader64Size =					sizeof(NTImageHeader64);
+constexpr size_t NTImageHeaderSize =					sizeof(NTImageHeader);
 
 constexpr const char* GetMachineTypeFromValue(uint16_t type)
 {
@@ -161,3 +176,30 @@ constexpr const char* GetMachineTypeFromValue(uint16_t type)
 	default: return "IMAGE_FILE_MACHINE_UNKNOW";
 	}
 }
+
+constexpr const char* GetCharacteristicFromValue(uint16_t value)
+{
+	switch (value)
+	{
+	case IMAGE_FILE_RELOCS_STRIPPED: return "IMAGE_FILE_RELOCS_STRIPPED";
+	case IMAGE_FILE_EXECUTABLE_IMAGE: return "IMAGE_FILE_EXECUTABLE_IMAGE";
+	case IMAGE_FILE_LINE_NUMS_STRIPPED: return "IMAGE_FILE_LINE_NUMS_STRIPPED";
+	case IMAGE_FILE_LOCAL_SYMS_STRIPPED: return "IMAGE_FILE_LOCAL_SYMS_STRIPPED";
+	case 0x0010: return "IMAGE_FILE_AGGRESSIVE_WS_TRIM";
+	case IMAGE_FILE_LARGE_ADDRESS_AWARE: return "IMAGE_FILE_LARGE_ADDRESS_AWARE";
+	case IMAGE_FILE_BYTES_REVERSED_LO: return "IMAGE_FILE_BYTES_REVERSED_LO";
+	case IMAGE_FILE_32BIT_MACHINE: return "IMAGE_FILE_32BIT_MACHINE";
+	case IMAGE_FILE_DEBUG_STRIPPED: return "IMAGE_FILE_DEBUG_STRIPPED";
+	case IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP: return "IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP";
+	case IMAGE_FILE_NET_RUN_FROM_SWAP: return "IMAGE_FILE_NET_RUN_FROM_SWAP";
+	case IMAGE_FILE_SYSTEM: return "IMAGE_FILE_SYSTEM";
+	case IMAGE_FILE_DLL: return "IMAGE_FILE_DLL";
+	case IMAGE_FILE_UP_SYSTEM_ONLY: return "IMAGE_FILE_UP_SYSTEM_ONLY";
+	case IMAGE_FILE_BYTES_REVERSED_HI: return "IMAGE_FILE_BYTES_REVERSED_HI";
+	default: return "";
+	}
+}
+
+bool CheckAndPrintDosHeader(std::byte* map, uint32_t& ImageHeader);
+bool CheckAndPrintIfValidPE(NTImageHeader* header);
+void PrintCOFFStructure(COFFHeader* header);

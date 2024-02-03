@@ -7,13 +7,14 @@
 
 int main(int argc, char **argv)
 {
-	if (argc == 1)
+	std::ios_base::sync_with_stdio(false);
+	/*if (argc == 1)
 	{
 		std::cout << "Please specify a file to analyze!\n";
 		return -1;
-	}
+	}*/
 
-	HANDLE file = CreateFileA(argv[1], GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE file = CreateFileA("E:\install.exe", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (file == INVALID_HANDLE_VALUE)
 	{
@@ -44,7 +45,10 @@ int main(int argc, char **argv)
 		return -5;
 	}
 
-	PrintBytes(map, mapSize.QuadPart);
+	uint32_t ImagePtr;
+	CheckAndPrintDosHeader(map, ImagePtr);
+	NTImageHeader* header = reinterpret_cast<NTImageHeader*>(&map[ImagePtr]);
+	CheckAndPrintIfValidPE(header);
 
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);
