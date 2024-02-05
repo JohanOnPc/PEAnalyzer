@@ -11,8 +11,8 @@ bool CheckAndPrintDosHeader(std::byte* map, uint32_t& ImageHeader)
 {
 	ImageDosHeader* header = reinterpret_cast<ImageDosHeader*>(map);
 	std::cout << "[*] DOS Header\n";
-	std::cout << "    Magic: " << header->e_magic << '\n';
-	std::cout << "    PE Address: " << std::format("0x{:08x}\n\n", header->e_lfanew);
+	std::cout << "\tMagic: " << header->e_magic << '\n';
+	std::cout << "\tPE Address: " << std::format("0x{:08x}\n\n", header->e_lfanew);
 
 	if (header->e_magic != 0x5A4D)
 		return false;
@@ -24,7 +24,7 @@ bool CheckAndPrintDosHeader(std::byte* map, uint32_t& ImageHeader)
 bool CheckAndPrintIfValidPE(ImageNTHeaders32* ImageHeader)
 {
 	std::cout << "[*] NT Header\n";
-	std::cout << std::format("  Signature: 0x{:08x}\n\n", ImageHeader->Signature);
+	std::cout << std::format("\tSignature: 0x{:08x}\n\n", ImageHeader->Signature);
 	if (0x00004550 != ImageHeader->Signature)
 		return false;
 
@@ -58,7 +58,7 @@ void PrintCOFFStructure(ImageFileHeader* FileHeader)
 
 void PrintOptionalHeader(ImageOptionalHeader32* OptionalHeader)
 {
-	std::cout << "  [*] Optional Header\n";
+	std::cout << "[*] Optional Header\n";
 	std::cout << std::format("\tMagic: 0x{:04x}", OptionalHeader->Magic);
 	switch (OptionalHeader->Magic)
 	{
@@ -147,7 +147,7 @@ void PrintDataDirectories(ImageDataDirectory* DataDirectory, uint32_t count)
 
 void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count)
 {
-	std::cout << "\n  [*] Image Section Headers\n";
+	std::cout << "\n[*] Image Section Headers\n";
 	for (uint16_t i = 0; i < count; i++)
 	{
 		std::cout << std::format("\tName: {:.8s}\n", SectionHeader[i].Name);
@@ -160,5 +160,12 @@ void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count)
 		std::cout << std::format("\t\tNumberOfRelocations: {}\n", SectionHeader[i].NumberOfRelocations);
 		std::cout << std::format("\t\tNumberOfLineNumbers: {}\n", SectionHeader[i].NumberOfLineNumbers);
 		std::cout << std::format("\t\tCharacteristics: 0b{:032b}\n", SectionHeader[i].Characteristics);
+
+		for (uint64_t j = 1; j < (static_cast<uint64_t>(1) << 32); j <<= 1)
+		{
+			std::string characteristic = GetSectionCharacteristicsFromValue(SectionHeader[i].Characteristics & j);
+			if (!characteristic.empty())
+				std::cout << std::format("\t\t\t{}\n", characteristic);
+		}
 	}
 }
