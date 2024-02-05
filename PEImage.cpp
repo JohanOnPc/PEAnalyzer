@@ -30,6 +30,7 @@ bool CheckAndPrintIfValidPE(ImageNTHeaders32* ImageHeader)
 
 	PrintCOFFStructure(&ImageHeader->FileHeader);
 	PrintOptionalHeader(&ImageHeader->OptionalHeader);
+	PrintSectionTable(reinterpret_cast<ImageSectionHeader*>((std::byte*)&ImageHeader->OptionalHeader + ImageHeader->FileHeader.SizeOfOptionalHeader), ImageHeader->FileHeader.NumberOfSections);
 
 	return true;
 }
@@ -43,7 +44,7 @@ void PrintCOFFStructure(ImageFileHeader* FileHeader)
 	std::cout << std::format("\tSymbol table address: 0x{:08x}\n", FileHeader->PointerToSymbolTable);
 	std::cout << std::format("\tNumber of Symbols: {}\n", FileHeader->NumberOfSymbols);
 	std::cout << std::format("\tOptional header size: {}\n", FileHeader->SizeOfOptionalHeader);
-	std::cout << std::format("\tCharacteristics: {:016b}\n", FileHeader->Characteristics);
+	std::cout << std::format("\tCharacteristics: 0b{:016b}\n", FileHeader->Characteristics);
 
 	for (int i = 1; i < (1 << 16); i <<= 1)
 	{
@@ -79,7 +80,6 @@ void PrintOptionalHeader(ImageOptionalHeader32* OptionalHeader)
 		ProcessAsPE32(OptionalHeader);
 	else if (magic == PE32PlusMagic)
 		ProcessAsPE32PLUS(reinterpret_cast<ImageOptionalHeader64*>(OptionalHeader));
-	
 }
 
 void ProcessAsPE32(ImageOptionalHeader32* OptionalHeader)
@@ -142,5 +142,23 @@ void PrintDataDirectories(ImageDataDirectory* DataDirectory, uint32_t count)
 		std::cout << std::format("\t{}\n", GetDataDirectoryNameFromValue(i));
 		std::cout << std::format("\t\tVirtualAddress: 0x{:08x}\n", DataDirectory[i].VirtualAddress);
 		std::cout << std::format("\t\tSize: {}\n", DataDirectory[i].Size);
+	}
+}
+
+void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count)
+{
+	std::cout << "\n  [*] Image Section Headers\n";
+	for (uint16_t i = 0; i < count; i++)
+	{
+		std::cout << std::format("\tName: {:.8s}\n", SectionHeader[i].Name);
+		std::cout << std::format("\t\tVirtualSize: {:}\n", SectionHeader[i].VirtualSize);
+		std::cout << std::format("\t\tVirtalAddress: 0x{:08x}\n", SectionHeader[i].VirtualAddress);
+		std::cout << std::format("\t\tSizeOfRawData: {}\n", SectionHeader[i].SizeOfRawData);
+		std::cout << std::format("\t\tPointerToRawData: 0x{:08x}\n", SectionHeader[i].PointerToRawData);
+		std::cout << std::format("\t\tPointerToRelocations: 0x{:08x}\n", SectionHeader[i].PointerToRelocations);
+		std::cout << std::format("\t\tPointerToLineNumbers: 0x{:08x}\n", SectionHeader[i].PointerToLineNumbers);
+		std::cout << std::format("\t\tNumberOfRelocations: {}\n", SectionHeader[i].NumberOfRelocations);
+		std::cout << std::format("\t\tNumberOfLineNumbers: {}\n", SectionHeader[i].NumberOfLineNumbers);
+		std::cout << std::format("\t\tCharacteristics: 0b{:032b}\n", SectionHeader[i].Characteristics);
 	}
 }

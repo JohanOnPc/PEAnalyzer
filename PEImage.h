@@ -277,3 +277,5 @@ void PrintOptionalHeader(ImageOptionalHeader32* OptionalHeader);
 void ProcessAsPE32(ImageOptionalHeader32* OptionalHeader);
 void ProcessAsPE32PLUS(ImageOptionalHeader64* OptionalHeader);
 void PrintDataDirectories(ImageDataDirectory* DataDirectory, uint32_t count);
+
+void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count);
