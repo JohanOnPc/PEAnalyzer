@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cstddef>
 
-struct DOSHeader {
+struct ImageDosHeader {
 	uint16_t e_magic;
 	uint16_t e_cblp;
 	uint16_t e_cp;
@@ -28,7 +28,7 @@ struct DOSHeader {
 	uint32_t e_lfanew;
 };
 
-struct COFFHeader {
+struct ImageFileHeader {
 	uint16_t MachineType;
 	uint16_t NumberOfSections;
 	uint32_t TimeDateStamp;
@@ -38,7 +38,12 @@ struct COFFHeader {
 	uint16_t Characteristics;
 };
 
-struct PE32PLUSHeaderStandardFields {
+struct ImageDataDirectory {
+	uint32_t VirtualAddress;
+	uint32_t Size;
+};
+
+struct ImageOptionalHeader64 {
 	uint16_t Magic;
 	uint8_t MajorLinkVersion;
 	uint8_t MinorLInkVersion;
@@ -47,15 +52,8 @@ struct PE32PLUSHeaderStandardFields {
 	uint32_t SizeOfUninitializedData;
 	uint32_t AddressOfEntryPoint;
 	uint32_t BaseOfCode;
-};
-
-struct PE32HeaderStandardFields : PE32PLUSHeaderStandardFields{
-	uint32_t BaseOfData;
-};
-
-struct PE32PLUSHeaderWindowsSpecifix {
 	uint64_t ImageBase;
-	uint32_t ImageAlignment;
+	uint32_t SectionAlignment;
 	uint32_t FileAlignment;
 	uint16_t MajorOperatingSystemVersion;
 	uint16_t MinorOperatingSystemVersion;
@@ -74,12 +72,22 @@ struct PE32PLUSHeaderWindowsSpecifix {
 	uint64_t SizeOfHeapReserve;
 	uint64_t SizeOfHeapCommit;
 	uint32_t LoaderFlags;
-	uint32_t NumberOfRVAAndSizes;
+	uint32_t NumberOfRvaAndSizes;
+	ImageDataDirectory DataDirectory[16];
 };
 
-struct PE32HeaderWindowsSpecifix {
+struct ImageOptionalHeader32 {
+	uint16_t Magic;
+	uint8_t MajorLinkVersion;
+	uint8_t MinorLInkVersion;
+	uint32_t SizeOfCode;
+	uint32_t SizeOfInitializedData;
+	uint32_t SizeOfUninitializedData;
+	uint32_t AddressOfEntryPoint;
+	uint32_t BaseOfCode;
+	uint32_t BaseOfData;
 	uint32_t ImageBase;
-	uint32_t ImageAlignment;
+	uint32_t SectionAlignment;
 	uint32_t FileAlignment;
 	uint16_t MajorOperatingSystemVersion;
 	uint16_t MinorOperatingSystemVersion;
@@ -99,46 +107,46 @@ struct PE32HeaderWindowsSpecifix {
 	uint32_t SizeOfHeapCommit;
 	uint32_t LoaderFlags;
 	uint32_t NumberOfRvaAndSizes;
+	ImageDataDirectory DataDirectory[16];
 };
 
-struct ImageDataDirectory {
+struct ImageNTHeaders64 {
+	uint32_t Signature;
+	ImageFileHeader FileHeader;
+	ImageOptionalHeader64 OptionalHeader;
+};
+
+struct ImageNTHeaders32 {
+	uint32_t Signature;
+	ImageFileHeader FileHeader;
+	ImageOptionalHeader32 OptionalHeader;
+};
+
+struct ImageSectionHeader {
+	char Name[8];
+	uint32_t VirtualSize;
 	uint32_t VirtualAddress;
-	uint32_t Size;
+	uint32_t SizeOfRawData;
+	uint32_t PointerToRawData;
+	uint32_t PointerToRelocations;
+	uint32_t PointerToLineNumbers;
+	uint16_t NumberOfRelocations;
+	uint16_t NumberOfLineNumbers;
+	uint32_t Characteristics;
 };
 
-struct PE32PlusOptionalHeader {
-	PE32PLUSHeaderStandardFields Std;
-	PE32PLUSHeaderWindowsSpecifix in;
-	ImageDataDirectory DataDirectory[];
-};
-
-struct PE32OptionalHeader {
-	PE32HeaderStandardFields Std;
-	PE32HeaderWindowsSpecifix Win;
-	ImageDataDirectory DataDirectory[];
-};
-
-struct NTImageHeader64 {
-	uint32_t Signature;
-	COFFHeader COFF;
-	PE32PlusOptionalHeader optionalHeader;
-};
-
-struct NTImageHeader {
-	uint32_t Signature;
-	COFFHeader COFF;
-	PE32OptionalHeader OptionalHeader;
-};
-
-constexpr size_t DOSHeaderSize =						sizeof(DOSHeader);
-constexpr size_t COFFHeaderSize =						sizeof(COFFHeader);
-constexpr size_t PE32PLUSHeaderStandardFieldsSize =		sizeof(PE32PLUSHeaderStandardFields);
-constexpr size_t PE32HeaderStandardFieldsSize =			sizeof(PE32HeaderStandardFields);
-constexpr size_t PE32PLUSHeaderWindowsSpecifixSize =	sizeof(PE32PLUSHeaderWindowsSpecifix);
-constexpr size_t PE32HeaderWindowsSpecifixSize =		sizeof(PE32HeaderWindowsSpecifix);
+constexpr size_t ImageDosHeaderSize =					sizeof(ImageDosHeader);
+constexpr size_t ImageFileHeaderSize =					sizeof(ImageFileHeader);
+constexpr size_t ImageOptionalHeader64Size =			sizeof(ImageOptionalHeader64);
+constexpr size_t ImageOptionalHeader32Size =			sizeof(ImageOptionalHeader32);
 constexpr size_t ImageDataDirectorySize =				sizeof(ImageDataDirectory);
-constexpr size_t NTImageHeader64Size =					sizeof(NTImageHeader64);
-constexpr size_t NTImageHeaderSize =					sizeof(NTImageHeader);
+constexpr size_t ImageNTHeaders64Size =					sizeof(ImageNTHeaders64);
+constexpr size_t ImageNTHeaders32Size =					sizeof(ImageNTHeaders32);
+constexpr size_t ImageSectionHeaderSize =				sizeof(ImageSectionHeader);
+
+constexpr uint16_t PE32Magic =		0x10B;
+constexpr uint16_t ROMMagic =		0x107;
+constexpr uint16_t PE32PlusMagic =	0x20B;
 
 constexpr const char* GetMachineTypeFromValue(uint16_t type)
 {
@@ -200,6 +208,72 @@ constexpr const char* GetCharacteristicFromValue(uint16_t value)
 	}
 }
 
+constexpr const char* GetSectionCharacteristicsFromValue(uint32_t value)
+{
+	switch (value)
+	{
+	case IMAGE_SCN_TYPE_NO_PAD: return "IMAGE_SCN_TYPE_NO_PAD";
+	case IMAGE_SCN_CNT_CODE: return "IMAGE_SCN_CNT_CODE";
+	case IMAGE_SCN_CNT_INITIALIZED_DATA: return "IMAGE_SCN_CNT_INITIALIZED_DATA";
+	case IMAGE_SCN_CNT_UNINITIALIZED_DATA: return "IMAGE_SCN_CNT_UNINITIALIZED_DATA";
+	case IMAGE_SCN_LNK_INFO: return "IMAGE_SCN_LNK_INFO";
+	case IMAGE_SCN_LNK_REMOVE: return "IMAGE_SCN_LNK_REMOVE";
+	case IMAGE_SCN_LNK_COMDAT: return "IMAGE_SCN_LNK_COMDAT";
+	case IMAGE_SCN_GPREL: return "IMAGE_SCN_GPREL";
+	case IMAGE_SCN_ALIGN_1BYTES: return "IMAGE_SCN_ALIGN_1BYTES";
+	case IMAGE_SCN_ALIGN_2BYTES: return "IMAGE_SCN_ALIGN_2BYTES";
+	case IMAGE_SCN_ALIGN_4BYTES: return "IMAGE_SCN_ALIGN_4BYTES";
+	case IMAGE_SCN_ALIGN_8BYTES: return "IMAGE_SCN_ALIGN_8BYTES";
+	case IMAGE_SCN_ALIGN_16BYTES: return "IMAGE_SCN_ALIGN_16BYTES";
+	case IMAGE_SCN_ALIGN_32BYTES: return "IMAGE_SCN_ALIGN_32BYTES";
+	case IMAGE_SCN_ALIGN_64BYTES: return "IMAGE_SCN_ALIGN_64BYTES";
+	case IMAGE_SCN_ALIGN_128BYTES: return "IMAGE_SCN_ALIGN_128BYTES";
+	case IMAGE_SCN_ALIGN_256BYTES: return "IMAGE_SCN_ALIGN_256BYTES";
+	case IMAGE_SCN_ALIGN_512BYTES: return "IMAGE_SCN_ALIGN_512BYTES";
+	case IMAGE_SCN_ALIGN_1024BYTES: return "IMAGE_SCN_ALIGN_1024BYTES";
+	case IMAGE_SCN_ALIGN_2048BYTES: return "IMAGE_SCN_ALIGN_2048BYTES";
+	case IMAGE_SCN_ALIGN_4096BYTES: return "IMAGE_SCN_ALIGN_4096BYTES";
+	case IMAGE_SCN_ALIGN_8192BYTES: return "IMAGE_SCN_ALIGN_8192BYTES";
+	case IMAGE_SCN_LNK_NRELOC_OVFL: return "IMAGE_SCN_LNK_NRELOC_OVFL";
+	case IMAGE_SCN_MEM_DISCARDABLE: return "IMAGE_SCN_MEM_DISCARDABLE";
+	case IMAGE_SCN_MEM_NOT_CACHED: return "IMAGE_SCN_MEM_NOT_CACHED";
+	case IMAGE_SCN_MEM_NOT_PAGED: return "IMAGE_SCN_MEM_NOT_PAGED";
+	case IMAGE_SCN_MEM_SHARED: return "IMAGE_SCN_MEM_SHARED";
+	case IMAGE_SCN_MEM_EXECUTE: return "IMAGE_SCN_MEM_EXECUTE";
+	case IMAGE_SCN_MEM_READ: return "IMAGE_SCN_MEM_READ";
+	case IMAGE_SCN_MEM_WRITE: return "IMAGE_SCN_MEM_WRITE";
+	default: return "";
+	}
+}
+
+constexpr const char* GetDataDirectoryNameFromValue(uint8_t value)
+{
+	switch (value)
+	{
+	case IMAGE_DIRECTORY_ENTRY_EXPORT: return "IMAGE_DIRECTORY_ENTRY_EXPORT";
+	case IMAGE_DIRECTORY_ENTRY_IMPORT: return "IMAGE_DIRECTORY_ENTRY_IMPORT";
+	case IMAGE_DIRECTORY_ENTRY_RESOURCE: return "IMAGE_DIRECTORY_ENTRY_RESOURCE";
+	case IMAGE_DIRECTORY_ENTRY_EXCEPTION: return "IMAGE_DIRECTORY_ENTRY_EXCEPTION";
+	case IMAGE_DIRECTORY_ENTRY_SECURITY: return "IMAGE_DIRECTORY_ENTRY_SECURITY";
+	case IMAGE_DIRECTORY_ENTRY_BASERELOC: return "IMAGE_DIRECTORY_ENTRY_BASERELOC";
+	case IMAGE_DIRECTORY_ENTRY_DEBUG: return "IMAGE_DIRECTORY_ENTRY_DEBUG";
+	case IMAGE_DIRECTORY_ENTRY_ARCHITECTURE: return "IMAGE_DIRECTORY_ENTRY_ARCHITECTURE";
+	case IMAGE_DIRECTORY_ENTRY_GLOBALPTR: return "IMAGE_DIRECTORY_ENTRY_GLOBALPTR";
+	case IMAGE_DIRECTORY_ENTRY_TLS: return "IMAGE_DIRECTORY_ENTRY_TLS";
+	case IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG: return "IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG";
+	case IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT: return "IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT";
+	case IMAGE_DIRECTORY_ENTRY_IAT: return "IMAGE_DIRECTORY_ENTRY_IAT";
+	case IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT: return "IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT";
+	case IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR: return "IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR";
+	case 15: return "RESERVED";
+	}
+}
+
 bool CheckAndPrintDosHeader(std::byte* map, uint32_t& ImageHeader);
-bool CheckAndPrintIfValidPE(NTImageHeader* header);
-void PrintCOFFStructure(COFFHeader* header);
+bool CheckAndPrintIfValidPE(ImageNTHeaders32* ImageHeader);
+void PrintCOFFStructure(ImageFileHeader* FileHeader);
+void PrintOptionalHeader(ImageOptionalHeader32* OptionalHeader);
+
+void ProcessAsPE32(ImageOptionalHeader32* OptionalHeader);
+void ProcessAsPE32PLUS(ImageOptionalHeader64* OptionalHeader);
+void PrintDataDirectories(ImageDataDirectory* DataDirectory, uint32_t count);

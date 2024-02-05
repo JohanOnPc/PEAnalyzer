@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
 	uint32_t ImagePtr;
 	CheckAndPrintDosHeader(map, ImagePtr);
-	NTImageHeader* header = reinterpret_cast<NTImageHeader*>(&map[ImagePtr]);
+	ImageNTHeaders32* header = reinterpret_cast<ImageNTHeaders32*>(&map[ImagePtr]);
 	CheckAndPrintIfValidPE(header);
 
 	UnmapViewOfFile(map);
