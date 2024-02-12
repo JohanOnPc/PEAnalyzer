@@ -126,7 +126,15 @@ void ProcessAsPE32PLUS(ImageOptionalHeader64* OptionalHeader)
 	std::cout << std::format("\tCheckSum: 0x{:08x}\n", OptionalHeader->CheckSum);
 	std::cout << std::format("\tSubsystem: {}\n", OptionalHeader->Subsystem);
 	std::cout << std::format("\t\t{}\n", GetSubsystemFromValue(OptionalHeader->Subsystem));
-	std::cout << std::format("\tDllCharacteristics: {}\n", OptionalHeader->DLLCharacteristics);
+	std::cout << std::format("\tDllCharacteristics: {:#16b}\n", OptionalHeader->DLLCharacteristics);
+
+	for (uint32_t j = 1; j < (1 << 16); j <<= 1)
+	{
+		std::string characteristic = GetDllCharacteristicsFromValue(OptionalHeader->DLLCharacteristics & j);
+		if (!characteristic.empty())
+			std::cout << std::format("\t\t{}\n", characteristic);
+	}
+
 	std::cout << std::format("\tSizeOfStackReserve: {}\n", OptionalHeader->SizeOfStackReserve);
 	std::cout << std::format("\tSizeOfStackCommit: {}\n", OptionalHeader->SizeOfStackCommit);
 	std::cout << std::format("\tSizeOfHeapReserve: {}\n", OptionalHeader->SizeOfHeapReserve);
