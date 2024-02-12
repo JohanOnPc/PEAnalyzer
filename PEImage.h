@@ -135,14 +135,23 @@ struct ImageSectionHeader {
 	uint32_t Characteristics;
 };
 
-constexpr size_t ImageDosHeaderSize =					sizeof(ImageDosHeader);
-constexpr size_t ImageFileHeaderSize =					sizeof(ImageFileHeader);
-constexpr size_t ImageOptionalHeader64Size =			sizeof(ImageOptionalHeader64);
-constexpr size_t ImageOptionalHeader32Size =			sizeof(ImageOptionalHeader32);
-constexpr size_t ImageDataDirectorySize =				sizeof(ImageDataDirectory);
-constexpr size_t ImageNTHeaders64Size =					sizeof(ImageNTHeaders64);
-constexpr size_t ImageNTHeaders32Size =					sizeof(ImageNTHeaders32);
-constexpr size_t ImageSectionHeaderSize =				sizeof(ImageSectionHeader);
+struct ImageImportDescriptor {
+	uint32_t ImportLookupTableRva;
+	uint32_t Timestamp;
+	uint32_t ForwarderChain;
+	uint32_t NameRva;
+	uint32_t ImportAddressTableRva;
+};
+
+constexpr size_t ImageDosHeaderSize =			sizeof(ImageDosHeader);
+constexpr size_t ImageFileHeaderSize =			sizeof(ImageFileHeader);
+constexpr size_t ImageOptionalHeader64Size =	sizeof(ImageOptionalHeader64);
+constexpr size_t ImageOptionalHeader32Size =	sizeof(ImageOptionalHeader32);
+constexpr size_t ImageDataDirectorySize =		sizeof(ImageDataDirectory);
+constexpr size_t ImageNTHeaders64Size =			sizeof(ImageNTHeaders64);
+constexpr size_t ImageNTHeaders32Size =			sizeof(ImageNTHeaders32);
+constexpr size_t ImageSectionHeaderSize =		sizeof(ImageSectionHeader);
+constexpr size_t ImageImportDescriptorSize =	sizeof(ImageImportDescriptor);
 
 constexpr uint16_t PE32Magic =		0x10B;
 constexpr uint16_t ROMMagic =		0x107;
@@ -279,3 +288,4 @@ void ProcessAsPE32PLUS(ImageOptionalHeader64* OptionalHeader);
 void PrintDataDirectories(ImageDataDirectory* DataDirectory, uint32_t count);
 
 void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count);
+void PrintImportDirectoryTable(ImageImportDescriptor* ImportDescriptor);

@@ -98,7 +98,8 @@ void ProcessAsPE32(ImageOptionalHeader32* OptionalHeader)
 	std::cout << std::format("\tSizeOfImage: {}\n", OptionalHeader->SizeOfImage);
 	std::cout << std::format("\tSizeOfHeaders: {}\n", OptionalHeader->SizeOfHeaders);
 	std::cout << std::format("\tCheckSum: 0x{:08x}\n", OptionalHeader->CheckSum);
-	std::cout << std::format("\tSubsystem: {}\n", OptionalHeader->DLLCharacteristics);
+	std::cout << std::format("\tSubsystem: {}\n", OptionalHeader->Subsystem);
+	std::cout << std::format("\tDLLCharacteristics: 0b{:016b}\n", OptionalHeader->DLLCharacteristics);
 	std::cout << std::format("\tSizeOfStackReserve: {}\n", OptionalHeader->SizeOfStackReserve);
 	std::cout << std::format("\tSizeOfStackCommit: {}\n", OptionalHeader->SizeOfStackCommit);
 	std::cout << std::format("\tSizeOfHeapReserve: {}\n", OptionalHeader->SizeOfHeapReserve);
@@ -151,9 +152,9 @@ void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count)
 	for (uint16_t i = 0; i < count; i++)
 	{
 		std::cout << std::format("\tName: {:.8s}\n", SectionHeader[i].Name);
-		std::cout << std::format("\t\tVirtualSize: {:}\n", SectionHeader[i].VirtualSize);
+		std::cout << std::format("\t\tVirtualSize: 0x{0:08x} ({0})\n", SectionHeader[i].VirtualSize);
 		std::cout << std::format("\t\tVirtalAddress: 0x{:08x}\n", SectionHeader[i].VirtualAddress);
-		std::cout << std::format("\t\tSizeOfRawData: {}\n", SectionHeader[i].SizeOfRawData);
+		std::cout << std::format("\t\tSizeOfRawData: 0x{0:08x} ({0})\n", SectionHeader[i].SizeOfRawData);
 		std::cout << std::format("\t\tPointerToRawData: 0x{:08x}\n", SectionHeader[i].PointerToRawData);
 		std::cout << std::format("\t\tPointerToRelocations: 0x{:08x}\n", SectionHeader[i].PointerToRelocations);
 		std::cout << std::format("\t\tPointerToLineNumbers: 0x{:08x}\n", SectionHeader[i].PointerToLineNumbers);
@@ -168,4 +169,8 @@ void PrintSectionTable(ImageSectionHeader* SectionHeader, uint16_t count)
 				std::cout << std::format("\t\t\t{}\n", characteristic);
 		}
 	}
+}
+
+void PrintImportDirectoryTable(ImageImportDescriptor* ImportDescriptor)
+{
 }
