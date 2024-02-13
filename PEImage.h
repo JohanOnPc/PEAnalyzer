@@ -10,7 +10,7 @@
 
 class PEImage {
 public:
-	PEImage(void *const base);
+	PEImage(const void* base);
 
 	void InitializeImage();
 	void PrintDosHeader() const;
@@ -18,23 +18,24 @@ public:
 	void PrintImageNTHeaders() const;
 	void PrintDataDirectories() const;
 	void PrintSectionTables() const;
+	void PrintImportDirectoryTable() const;
 
 private:
 	void PrintImageNTHeaders64() const;
 	void PrintImageNTHeaders32() const;
 
 private:
-	void *const ImageBase;
+	const void* ImageBase;
 
-	ImageDosHeader *const DosHeader;
+	const ImageDosHeader* DosHeader;
 	union
 	{
-		ImageNTHeaders32* NTHeaders32 = nullptr;
-		ImageNTHeaders64* NTHeaders64;
+		const ImageNTHeaders32* NTHeaders32 = nullptr;
+		const ImageNTHeaders64* NTHeaders64;
 	};
 
-	ImageDataDirectory* DataDirectory = nullptr;
-	ImageSectionHeader* SectionHeader = nullptr;
+	const ImageDataDirectory* DataDirectory = nullptr;
+	const ImageSectionHeader* SectionHeader = nullptr;
 
 	uint32_t DataDirectoriesCount = 0;
 	uint16_t ImageType = 0;

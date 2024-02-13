@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-PEImage::PEImage(void *const base) : ImageBase(base), DosHeader(reinterpret_cast<ImageDosHeader *const>(base))
+PEImage::PEImage(const void* base) : ImageBase(base), DosHeader(reinterpret_cast<const ImageDosHeader*>(base))
 {
 }
 
@@ -65,7 +65,7 @@ void PEImage::PrintDosHeader() const
 
 void PEImage::PrintCoffHeader() const
 {
-    ImageFileHeader* FileHeader = &NTHeaders32->FileHeader;
+    const ImageFileHeader* FileHeader = &NTHeaders32->FileHeader;
     std::cout << "[*] COFF File Header\n";
     std::cout << std::format("\tMachine:                {}\n", GetMachineTypeFromValue(FileHeader->MachineType));
     std::cout << std::format("\tNumber of Sections:     {}\n", FileHeader->NumberOfSections);
@@ -104,7 +104,7 @@ void PEImage::PrintImageNTHeaders() const
 
 void PEImage::PrintImageNTHeaders64() const
 {
-    ImageOptionalHeader64* OptionalHeader = &NTHeaders64->OptionalHeader;
+    const ImageOptionalHeader64* OptionalHeader = &NTHeaders64->OptionalHeader;
 
     std::cout << "[*] Optional Header\n";
     std::cout << std::format("\tMagic:                          {:#06x} ( {} )\n", ImageType, GetImageTypeFromValue(ImageType));
@@ -148,7 +148,7 @@ void PEImage::PrintImageNTHeaders64() const
 
 void PEImage::PrintImageNTHeaders32() const
 {
-    ImageOptionalHeader32* OptionalHeader = &NTHeaders32->OptionalHeader;
+    const ImageOptionalHeader32* OptionalHeader = &NTHeaders32->OptionalHeader;
 
     std::cout << "[*] Optional Header\n";
     std::cout << std::format("\tMagic:                          {:#06x} ( {} )\n", ImageType, GetImageTypeFromValue(ImageType));
@@ -228,4 +228,9 @@ void PEImage::PrintSectionTables() const
 
         std::cout << '\n';
     }
+}
+
+void PEImage::PrintImportDirectoryTable() const
+{
+
 }

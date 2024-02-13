@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	image.PrintImageNTHeaders();
 	image.PrintDataDirectories();
 	image.PrintSectionTables();
+	image.PrintImportDirectoryTable();
 
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);

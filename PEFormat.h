@@ -152,3 +152,15 @@ constexpr size_t ImageImportDescriptorSize = sizeof(ImageImportDescriptor);
 constexpr uint16_t PE32Magic = 0x10B;
 constexpr uint16_t ROMMagic = 0x107;
 constexpr uint16_t PE32PlusMagic = 0x20B;
+
+typedef uint32_t ImportLookupDescriptor32;
+typedef uint64_t ImportLookupDescriptor64;
+
+inline uint16_t GetOrdinalNumber(uint32_t ILD) { return ILD & 0xFFFF; }
+inline uint16_t GetOrdinalNumber(uint64_t ILD) { return ILD & 0xFFFF; }
+
+inline uint32_t GetNameTableRVA(uint32_t ILD) { return ILD & 0x7FFFFFFF; }
+inline uint32_t GetNameTableRVA(uint64_t ILD) { return ILD & 0x7FFFFFFF; }
+
+inline bool GetOrdinalFlag(uint32_t ILD) { return ILD >> 31 & 1; }
+inline bool GetOrdinalFlag(uint64_t ILD) { return ILD >> 63 & 1; }
