@@ -37,6 +37,8 @@ void PEImage::InitializeImage()
         DataDirectory = NTHeaders64->OptionalHeader.DataDirectory;
         DataDirectoriesCount = NTHeaders64->OptionalHeader.NumberOfRvaAndSizes;
     }
+
+    AnalyzeSectionHeaders();
 }
 
 void PEImage::PrintDosHeader() const
@@ -199,7 +201,7 @@ void PEImage::PrintDataDirectories() const
     {
         std::cout << std::format("\t{}\n", GetDataDirectoryNameFromValue(i));
         std::cout << std::format("\t\tVirtualAddress:   {:#010x}\n", DataDirectory[i].VirtualAddress);
-        std::cout << std::format("\t\tSize:             {}\n", DataDirectory[i].Size);
+        std::cout << std::format("\t\tSize:             {0:#010x} ({0})\n", DataDirectory[i].Size);
     }
 }
 
@@ -230,7 +232,46 @@ void PEImage::PrintSectionTables() const
     }
 }
 
+void PEImage::AnalyzeSectionHeaders()
+{
+    AnalyzeImportDirectory();
+}
+
+void PEImage::AnalyzeImportDirectory()
+{
+    uint64_t address = 0;
+    size_t i = 0;
+
+    if (IMAGE_DIRECTORY_ENTRY_IMPORT < DataDirectoriesCount)
+        address = DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress;
+    else
+        return;
+
+    for (; i < SectionHeaderCount; i++)
+    {
+        if ((address - SectionHeader[i].VirtualAddress) < SectionHeader[i].VirtualSize)
+        {
+            address = (address - SectionHeader[i].VirtualAddress) + SectionHeader[i].PointerToRawData;
+            ImportTable = reinterpret_cast<ImageImportDescriptor*>((std::byte*)ImageBase + address);
+            return;
+        }
+            
+    }
+}
+
 void PEImage::PrintImportDirectoryTable() const
 {
+    std::cout << "[*] Import Directory Table\n";
 
+    size_t i = 0;
+    while (ImportTable[i].ImportLookupTableRva)
+    {
+        std::cout << std::format("\tImportLookupTableRVA:   {:#010x}\n", ImportTable[i].ImportLookupTableRva);
+        std::cout << std::format("\tTimestamp:              {:#010x}\n", ImportTable[i].Timestamp);
+        std::cout << std::format("\tForwarderChain:         {:#010x}\n", ImportTable[i].ForwarderChain);
+        std::cout << std::format("\tNameRVA:                {:#010x}\n", ImportTable[i].NameRva);
+        std::cout << std::format("\tImportAddressTableRVA:  {:#010x}\n\n", ImportTable[i].ImportAddressTableRva);
+
+        i++;
+    }
 }

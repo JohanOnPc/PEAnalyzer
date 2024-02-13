@@ -23,6 +23,8 @@ public:
 private:
 	void PrintImageNTHeaders64() const;
 	void PrintImageNTHeaders32() const;
+	void AnalyzeSectionHeaders();
+	void AnalyzeImportDirectory();
 
 private:
 	const void* ImageBase;
@@ -36,6 +38,9 @@ private:
 
 	const ImageDataDirectory* DataDirectory = nullptr;
 	const ImageSectionHeader* SectionHeader = nullptr;
+	const ImageImportDescriptor* ImportTable = nullptr;
+
+	const void* DataSection = nullptr;
 
 	uint32_t DataDirectoriesCount = 0;
 	uint16_t ImageType = 0;
