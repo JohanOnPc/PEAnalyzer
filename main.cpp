@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 		return -3;
 	}
 
-	std::byte* map = reinterpret_cast<std::byte*>(MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, 0));
+	void* map = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, 0);
 
 	if (map == nullptr)
 	{
@@ -45,10 +45,15 @@ int main(int argc, char **argv)
 		return -5;
 	}
 
-	uint32_t ImagePtr;
-	CheckAndPrintDosHeader(map, ImagePtr);
-	ImageNTHeaders32* header = reinterpret_cast<ImageNTHeaders32*>(&map[ImagePtr]);
-	CheckAndPrintIfValidPE(header);
+	PEImage image(map);
+
+	image.InitializeImage();
+	image.PrintDosHeader();
+	image.PrintCoffHeader();
+	image.PrintImageNTHeaders();
+	image.PrintDataDirectories();
+	image.PrintSectionTables();
+	image.PrintImportDirectoryTable();
 
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);
