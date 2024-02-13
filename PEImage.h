@@ -25,6 +25,10 @@ private:
 	void PrintImageNTHeaders32() const;
 	void AnalyzeSectionHeaders();
 	void AnalyzeImportDirectory();
+	void PrintImportLookupTable(uint32_t rva) const;
+	void PrintImportLookupTable32(uint32_t rva) const;
+	void PrintImportLookupTable64(uint32_t rva) const;
+
 	inline const void* RvaToRaw(uint32_t rva) const;
 
 private:

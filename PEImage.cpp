@@ -256,8 +256,42 @@ void PEImage::PrintImportDirectoryTable() const
         std::cout << std::format("\t\tTimestamp:              {:#010x}\n", ImportTable[i].Timestamp);
         std::cout << std::format("\t\tForwarderChain:         {:#010x}\n", ImportTable[i].ForwarderChain);
         std::cout << std::format("\t\tNameRVA:                {:#010x}\n", ImportTable[i].NameRva);
-        std::cout << std::format("\t\tImportAddressTableRVA:  {:#010x}\n\n", ImportTable[i].ImportAddressTableRva);
-
+        std::cout << std::format("\t\tImportAddressTableRVA:  {:#010x}\n", ImportTable[i].ImportAddressTableRva);
+        PrintImportLookupTable(ImportTable[i].ImportLookupTableRva);
+        std::cout << '\n';
         i++;
+    }
+}
+
+void PEImage::PrintImportLookupTable(uint32_t rva) const
+{
+    if (ImageType == PE32Magic)
+        PrintImportLookupTable32(rva);
+    else if (ImageType == PE32PlusMagic)
+        PrintImportLookupTable64(rva);
+
+}
+
+void PEImage::PrintImportLookupTable32(uint32_t rva) const
+{
+    const ImportLookupDescriptor32* Descriptor = reinterpret_cast<const ImportLookupDescriptor32*>(RvaToRaw(rva));
+
+    while (*Descriptor != NULL)
+    {
+        //std::cout << std::format("\t\t\t{:#034b}\n", *Descriptor++);
+        if (!GetOrdinalFlag(*Descriptor))
+            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor++)) + 2);
+    }
+}
+
+void PEImage::PrintImportLookupTable64(uint32_t rva) const
+{
+    const ImportLookupDescriptor64* Descriptor = reinterpret_cast<const ImportLookupDescriptor64*>(RvaToRaw(rva));
+
+    while (*Descriptor != NULL)
+    {
+        //std::cout << std::format("\t\t\t{:#066b}\n", *Descriptor++);
+        if (!GetOrdinalFlag(*Descriptor))
+            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor++)));
     }
 }
