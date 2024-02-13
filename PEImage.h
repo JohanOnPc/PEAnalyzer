@@ -25,6 +25,7 @@ private:
 	void PrintImageNTHeaders32() const;
 	void AnalyzeSectionHeaders();
 	void AnalyzeImportDirectory();
+	inline const void* RvaToRaw(uint32_t rva) const;
 
 private:
 	const void* ImageBase;
@@ -47,6 +48,18 @@ private:
 	uint16_t SectionHeaderCount = 0;
 };
 
+inline const void* PEImage::RvaToRaw(uint32_t rva) const
+{
+	for (int i = 0; i < SectionHeaderCount; i++)
+	{
+		if ((rva - SectionHeader[i].VirtualAddress) < SectionHeader[i].VirtualSize)
+		{
+			return (std::byte*)ImageBase + SectionHeader[i].PointerToRawData + (rva - SectionHeader[i].VirtualAddress);
+		}
+	}
+
+	return NULL;
+}
 
 constexpr const char* GetImageTypeFromValue(uint16_t value)
 {
