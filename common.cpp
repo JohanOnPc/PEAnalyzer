@@ -7,20 +7,14 @@
 
 void PrintBytes(std::byte* map, __int64 size, int width)
 {
-	__int64 i = 0;
-	__try
-	{
-		for (; i < size; i++) {
-			std::cout << std::format("{:02x} ", (unsigned char)map[i]);
+	int64_t i = 0;
+	
+	for (; i < size; i++) {
+		std::cout << std::format("{:02x} ", (unsigned char)map[i]);
 
-			if ((i + 1) % width == 0)
-				std::cout << '\n';
-		}
+		if ((i + 1) % width == 0)
+			std::cout << '\n';
 	}
-	__except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR ?
-		EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
-	{
-		std::cout << "Got a page acces violation error for address: " << (std::byte*)(map + i) << '\n';
-	}
+	
 	std::cout << '\n';
 }

@@ -50,6 +50,10 @@ int main(int argc, char **argv)
 	ImageNTHeaders32* header = reinterpret_cast<ImageNTHeaders32*>(&map[ImagePtr]);
 	CheckAndPrintIfValidPE(header);
 
+	PEImage image(reinterpret_cast<void*>(map));
+	image.InitializeImage();
+	image.PrintDosHeader();
+
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);
 	CloseHandle(file);
