@@ -15,9 +15,13 @@ PEImage::PEImage(void *const base) : ImageBase(base), DosHeader(reinterpret_cast
 void PEImage::InitializeImage()
 {
     if (DosHeader->e_magic != 0x5A4D)
-        throw std::exception("File does not contain the valid DOS magic: 'MZ'!");
+        throw std::exception("Image does not contain the valid DOS magic: 'MZ'!");
 
     NTHeaders32 = reinterpret_cast<ImageNTHeaders32*>((std::byte*)ImageBase + DosHeader->e_lfanew);
+
+    if (NTHeaders32->Signature != 0x00004550)
+        throw std::exception("Image does not contain the valid PE signature 'PE\\0\\0'");
+
     ImageType = NTHeaders32->OptionalHeader.Magic;
 }
 
@@ -41,7 +45,77 @@ void PEImage::PrintDosHeader() const
     std::cout << std::format("\te_oemid:    {}\n", DosHeader->e_oemid);
     std::cout << std::format("\te_oeminfo:  {}\n", DosHeader->e_oeminfo);
     std::cout << std::format("\te_lfanew:   {:#06x}\n", DosHeader->e_lfanew);
+
+    std::cout << '\n';
 }
+
+void PEImage::PrintCoffHeader() const
+{
+    ImageFileHeader* FileHeader = &NTHeaders32->FileHeader;
+    std::cout << "[*] COFF File Header\n";
+    std::cout << std::format("\tMachine:                {}\n", GetMachineTypeFromValue(FileHeader->MachineType));
+    std::cout << std::format("\tNumber of Sections:     {}\n", FileHeader->NumberOfSections);
+    std::cout << std::format("\tTimestamp:              {}\n", std::chrono::sys_seconds{ std::chrono::seconds{ FileHeader->TimeDateStamp } });
+    std::cout << std::format("\tSymbol table address:   {:#010x}\n", FileHeader->PointerToSymbolTable);
+    std::cout << std::format("\tNumber of Symbols:      {}\n", FileHeader->NumberOfSymbols);
+    std::cout << std::format("\tOptional header size:   {}\n", FileHeader->SizeOfOptionalHeader);
+    std::cout << std::format("\tCharacteristics:        {:#018b}\n", FileHeader->Characteristics);
+
+    for (int i = 1; i < (1 << 16); i <<= 1)
+    {
+        std::string characteristic = GetCharacteristicFromValue(FileHeader->Characteristics & i);
+        if (!characteristic.empty())
+            std::cout << std::format("\t\t{}\n", characteristic);
+    }
+
+    std::cout << '\n';
+}
+
+void PEImage::PrintImageNTHeaders() const
+{
+    switch (ImageType)
+    {
+    case PE32Magic: 
+        PrintImageNTHeaders32();
+        return;
+    case PE32PlusMagic:
+        PrintImageNTHeaders64();
+        return;
+    case ROMMagic:
+        return;
+    default:
+        return;
+    }
+}
+
+void PEImage::PrintImageNTHeaders64() const
+{
+    ImageOptionalHeader64* OptionalHeader = &NTHeaders64->OptionalHeader;
+
+    std::cout << "[*] Optional Header\n";
+    std::cout << std::format("\tMagic:                  {:#06x} ( {} )\n", ImageType, GetImageTypeFromValue(ImageType));
+    std::cout << std::format("\tMajorLinkVersion:       {}\n", OptionalHeader->MajorLinkVersion);
+    std::cout << std::format("\tMinorLinkVersion:       {}\n", OptionalHeader->MinorLInkVersion);
+    std::cout << std::format("\tSizeOfCode:             {}\n", OptionalHeader->SizeOfCode);
+    std::cout << std::format("\tSizeOfInitializedData:  {}\n", OptionalHeader->SizeOfInitializedData);
+    std::cout << std::format("\tAddressOfEntryPoint:    {:#010x}\n", OptionalHeader->AddressOfEntryPoint);
+    std::cout << std::format("\tBaseOfCode:             {:#010x}\n", OptionalHeader->BaseOfCode);
+}
+
+void PEImage::PrintImageNTHeaders32() const
+{
+    ImageOptionalHeader32* OptionalHeader = &NTHeaders32->OptionalHeader;
+
+    std::cout << "[*] Optional Header\n";
+    std::cout << std::format("\tMagic:                  {:#06x} ( {} )\n", ImageType, GetImageTypeFromValue(ImageType));
+    std::cout << std::format("\tMajorLinkVersion:       {}\n", OptionalHeader->MajorLinkVersion);
+    std::cout << std::format("\tMinorLinkVersion:       {}\n", OptionalHeader->MinorLInkVersion);
+    std::cout << std::format("\tSizeOfCode:             {}\n", OptionalHeader->SizeOfCode);
+    std::cout << std::format("\tSizeOfInitializedData:  {}\n", OptionalHeader->SizeOfInitializedData);
+    std::cout << std::format("\tAddressOfEntryPoint:    {:#010x}\n", OptionalHeader->AddressOfEntryPoint);
+    std::cout << std::format("\tBaseOfCode:             {:#010x}\n", OptionalHeader->BaseOfCode);
+}
+
 
 bool CheckAndPrintDosHeader(std::byte* map, uint32_t& ImageHeader)
 {

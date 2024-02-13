@@ -51,8 +51,11 @@ int main(int argc, char **argv)
 	CheckAndPrintIfValidPE(header);
 
 	PEImage image(reinterpret_cast<void*>(map));
+
 	image.InitializeImage();
 	image.PrintDosHeader();
+	image.PrintCoffHeader();
+	image.PrintImageNTHeaders();
 
 	UnmapViewOfFile(map);
 	CloseHandle(fileMapping);

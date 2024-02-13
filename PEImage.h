@@ -14,8 +14,12 @@ public:
 
 	void InitializeImage();
 	void PrintDosHeader() const;
+	void PrintCoffHeader() const;
+	void PrintImageNTHeaders() const;
 
-
+private:
+	void PrintImageNTHeaders64() const;
+	void PrintImageNTHeaders32() const;
 
 private:
 	void *const ImageBase;
@@ -29,6 +33,18 @@ private:
 
 	uint16_t ImageType = 0;
 };
+
+
+constexpr const char* GetImageTypeFromValue(uint16_t value)
+{
+	switch (value)
+	{
+	case PE32Magic: return "PE32";
+	case PE32PlusMagic: return "PE32+";
+	case ROMMagic: return "ROM";
+	default: return "Unknown";
+	}
+}
 
 constexpr const char* GetMachineTypeFromValue(uint16_t type)
 {
