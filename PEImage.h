@@ -16,6 +16,8 @@ public:
 	void PrintDosHeader() const;
 	void PrintCoffHeader() const;
 	void PrintImageNTHeaders() const;
+	void PrintDataDirectories() const;
+	void PrintSectionTables() const;
 
 private:
 	void PrintImageNTHeaders64() const;
@@ -31,7 +33,12 @@ private:
 		ImageNTHeaders64* NTHeaders64;
 	};
 
+	ImageDataDirectory* DataDirectory = nullptr;
+	ImageSectionHeader* SectionHeader = nullptr;
+
+	uint32_t DataDirectoriesCount = 0;
 	uint16_t ImageType = 0;
+	uint16_t SectionHeaderCount = 0;
 };
 
 
