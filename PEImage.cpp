@@ -280,7 +280,10 @@ void PEImage::PrintImportLookupTable32(uint32_t rva) const
     {
         //std::cout << std::format("\t\t\t{:#034b}\n", *Descriptor++);
         if (!GetOrdinalFlag(*Descriptor))
-            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor++)) + 2);
+            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor)) + 2);
+        else
+            std::cout << std::format("\t\t\tOrdinalNumber: {}\n", GetOrdinalNumber(*Descriptor));
+        Descriptor++;
     }
 }
 
@@ -292,6 +295,9 @@ void PEImage::PrintImportLookupTable64(uint32_t rva) const
     {
         //std::cout << std::format("\t\t\t{:#066b}\n", *Descriptor++);
         if (!GetOrdinalFlag(*Descriptor))
-            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor++)));
+            std::cout << std::format("\t\t\t{}\n", (char*)RvaToRaw(GetNameTableRVA(*Descriptor)) + 2);
+        else
+            std::cout << std::format("\t\t\tOrdinalNumber: {}\n", GetOrdinalNumber(*Descriptor));
+        Descriptor++;
     }
 }
