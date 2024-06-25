@@ -338,4 +338,12 @@ void PEImage::PrintExportDirectoryTable() const
 
 void PEImage::PrintExportAddressTable() const
 {
+    const ExportAddressTable* AddressTable = reinterpret_cast<const ExportAddressTable*>(RvaToRaw(ExportTable->ExportAddressTableRva));
+    const uint32_t* NamePointer = reinterpret_cast<const uint32_t*>(RvaToRaw(ExportTable->NamePointerRva));
+    const uint16_t* OrdinalTable = reinterpret_cast<const uint16_t*>(RvaToRaw(ExportTable->OrdinalTableRva));
+
+    for (size_t i = 0; i < ExportTable->NumberOfNamePointers; i++)
+    {
+        std::cout << std::format("\t\t{} ({:#010x})\n", (char*)RvaToRaw(NamePointer[i]), AddressTable[OrdinalTable[i]].ExportRva);
+    }
 }
