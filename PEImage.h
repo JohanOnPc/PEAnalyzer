@@ -19,15 +19,18 @@ public:
 	void PrintDataDirectories() const;
 	void PrintSectionTables() const;
 	void PrintImportDirectoryTable() const;
+	void PrintExportDirectoryTable() const;
 
 private:
 	void PrintImageNTHeaders64() const;
 	void PrintImageNTHeaders32() const;
 	void AnalyzeSectionHeaders();
 	void AnalyzeImportDirectory();
+	void AnalyzeExportDirectory();
 	void PrintImportLookupTable(uint32_t rva) const;
 	void PrintImportLookupTable32(uint32_t rva) const;
 	void PrintImportLookupTable64(uint32_t rva) const;
+	void PrintExportAddressTable() const;
 
 	inline const void* RvaToRaw(uint32_t rva) const;
 
@@ -44,6 +47,7 @@ private:
 	const ImageDataDirectory* DataDirectory = nullptr;
 	const ImageSectionHeader* SectionHeader = nullptr;
 	const ImageImportDescriptor* ImportTable = nullptr;
+	const ImageExportDirectory* ExportTable = nullptr;
 
 	const void* DataSection = nullptr;
 

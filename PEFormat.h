@@ -139,6 +139,25 @@ struct ImageImportDescriptor {
 	uint32_t ImportAddressTableRva;
 };
 
+struct ImageExportDirectory {
+	uint32_t Flags;
+	uint32_t TimeDateStamp;
+	uint16_t MajorVersion;
+	uint16_t MinorVersion;
+	uint32_t NameRva;
+	uint32_t OrdinalBase;
+	uint32_t NumberOfAddressTableEntries;
+	uint32_t NumberOfNamePointers;
+	uint32_t ExportAddressTableRva;
+	uint32_t NamePointerRva;
+	uint32_t OrdinalTableRva;
+};
+
+struct ExportAddressTable {
+	uint32_t ExportRva;
+	uint32_t ForwarderRva;
+};
+
 constexpr size_t ImageDosHeaderSize = sizeof(ImageDosHeader);
 constexpr size_t ImageFileHeaderSize = sizeof(ImageFileHeader);
 constexpr size_t ImageOptionalHeader64Size = sizeof(ImageOptionalHeader64);
@@ -148,6 +167,8 @@ constexpr size_t ImageNTHeaders64Size = sizeof(ImageNTHeaders64);
 constexpr size_t ImageNTHeaders32Size = sizeof(ImageNTHeaders32);
 constexpr size_t ImageSectionHeaderSize = sizeof(ImageSectionHeader);
 constexpr size_t ImageImportDescriptorSize = sizeof(ImageImportDescriptor);
+constexpr size_t ImageExportDirectorySize = sizeof(ImageExportDirectory);
+constexpr size_t ExportAddressTableSize = sizeof(ExportAddressTable);
 
 constexpr uint16_t PE32Magic = 0x10B;
 constexpr uint16_t ROMMagic = 0x107;

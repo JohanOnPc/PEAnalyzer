@@ -235,31 +235,42 @@ void PEImage::PrintSectionTables() const
 void PEImage::AnalyzeSectionHeaders()
 {
     AnalyzeImportDirectory();
+    AnalyzeExportDirectory();
 }
 
 void PEImage::AnalyzeImportDirectory()
 {
-    if (IMAGE_DIRECTORY_ENTRY_IMPORT < DataDirectoriesCount)
+    if (IMAGE_DIRECTORY_ENTRY_IMPORT < DataDirectoriesCount && DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size > 0)
         ImportTable = reinterpret_cast<const ImageImportDescriptor*>(RvaToRaw(DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress));       
+    return;
+}
+
+void PEImage::AnalyzeExportDirectory()
+{
+    if (IMAGE_DIRECTORY_ENTRY_EXPORT < DataDirectoriesCount && DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size > 0)
+        ExportTable = reinterpret_cast<const ImageExportDirectory*>(RvaToRaw(DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress));
     return;
 }
 
 void PEImage::PrintImportDirectoryTable() const
 {
-    std::cout << "[*] Import Directory Table\n";
-
-    size_t i = 0;
-    while (ImportTable[i].ImportLookupTableRva)
+    if (ImportTable != nullptr)
     {
-        std::cout << std::format("\tName: {}\n", (char*)RvaToRaw(ImportTable[i].NameRva));
-        std::cout << std::format("\t\tImportLookupTableRVA:   {:#010x}\n", ImportTable[i].ImportLookupTableRva);
-        std::cout << std::format("\t\tTimestamp:              {:#010x}\n", ImportTable[i].Timestamp);
-        std::cout << std::format("\t\tForwarderChain:         {:#010x}\n", ImportTable[i].ForwarderChain);
-        std::cout << std::format("\t\tNameRVA:                {:#010x}\n", ImportTable[i].NameRva);
-        std::cout << std::format("\t\tImportAddressTableRVA:  {:#010x}\n", ImportTable[i].ImportAddressTableRva);
-        PrintImportLookupTable(ImportTable[i].ImportLookupTableRva);
-        std::cout << '\n';
-        i++;
+        std::cout << "[*] Import Directory Table\n";
+
+        size_t i = 0;
+        while (ImportTable[i].ImportLookupTableRva)
+        {
+            std::cout << std::format("\tName: {}\n", (char*)RvaToRaw(ImportTable[i].NameRva));
+            std::cout << std::format("\t\tImportLookupTableRVA:   {:#010x}\n", ImportTable[i].ImportLookupTableRva);
+            std::cout << std::format("\t\tTimestamp:              {:#010x}\n", ImportTable[i].Timestamp);
+            std::cout << std::format("\t\tForwarderChain:         {:#010x}\n", ImportTable[i].ForwarderChain);
+            std::cout << std::format("\t\tNameRVA:                {:#010x}\n", ImportTable[i].NameRva);
+            std::cout << std::format("\t\tImportAddressTableRVA:  {:#010x}\n", ImportTable[i].ImportAddressTableRva);
+            PrintImportLookupTable(ImportTable[i].ImportLookupTableRva);
+            std::cout << '\n';
+            i++;
+        }
     }
 }
 
@@ -300,4 +311,31 @@ void PEImage::PrintImportLookupTable64(uint32_t rva) const
             std::cout << std::format("\t\t\tOrdinalNumber: {}\n", GetOrdinalNumber(*Descriptor));
         Descriptor++;
     }
+}
+
+void PEImage::PrintExportDirectoryTable() const
+{
+    if (ExportTable != nullptr)
+    {
+        std::cout << "[*] Export Directory Table\n";
+
+        std::cout << std::format("\tExportFlags:            {:#034b}\n", ExportTable->Flags);
+        std::cout << std::format("\tTimeStamp:              {}\n", std::chrono::sys_seconds{ std::chrono::seconds{ ExportTable->TimeDateStamp } });
+        std::cout << std::format("\tMajorVersion:           {}\n", ExportTable->MajorVersion);
+        std::cout << std::format("\tMinorVersion:           {}\n", ExportTable->MinorVersion);
+        std::cout << std::format("\tNameRva:                {:#010x}, ({})\n", ExportTable->NameRva, (char*)RvaToRaw(ExportTable->NameRva));
+        std::cout << std::format("\tOrdinalBase:            {}\n", ExportTable->OrdinalBase);
+        std::cout << std::format("\tAddressTableEntries:    {}\n", ExportTable->NumberOfAddressTableEntries);
+        std::cout << std::format("\tNumberOfNamePointers:   {}\n", ExportTable->NumberOfNamePointers);
+        std::cout << std::format("\tExportTableAddressRva:  {:#010x}\n", ExportTable->ExportAddressTableRva);
+        std::cout << std::format("\tNamePointerRva:         {:#010x}\n", ExportTable->NamePointerRva);
+        std::cout << std::format("\tOrdinalTableRva:        {:#010x}\n", ExportTable->OrdinalTableRva);
+        PrintExportAddressTable();
+    }
+
+    std::cout << '\n';
+}
+
+void PEImage::PrintExportAddressTable() const
+{
 }

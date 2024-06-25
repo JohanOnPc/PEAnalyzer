@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <iostream>
+#include <winnt.h>
 
 #include "common.h"
 #include "PEImage.h"
@@ -53,6 +54,7 @@ int main(int argc, char **argv)
 	image.PrintImageNTHeaders();
 	image.PrintDataDirectories();
 	image.PrintSectionTables();
+	image.PrintExportDirectoryTable();
 	image.PrintImportDirectoryTable();
 
 	UnmapViewOfFile(map);
